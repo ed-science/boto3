@@ -51,13 +51,7 @@ class ResourceCollection:
         self._params = copy.deepcopy(kwargs)
 
     def __repr__(self):
-        return '{}({}, {})'.format(
-            self.__class__.__name__,
-            self._parent,
-            '{}.{}'.format(
-                self._parent.meta.service_name, self._model.resource.type
-            ),
-        )
+        return f'{self.__class__.__name__}({self._parent}, {self._parent.meta.service_name}.{self._model.resource.type})'
 
     def __iter__(self):
         """
@@ -107,10 +101,7 @@ class ResourceCollection:
         """
         params = copy.deepcopy(self._params)
         merge_dicts(params, kwargs, append_lists=True)
-        clone = self.__class__(
-            self._model, self._parent, self._handler, **params
-        )
-        return clone
+        return self.__class__(self._model, self._parent, self._handler, **params)
 
     def pages(self):
         """
@@ -324,13 +315,7 @@ class CollectionManager:
         )
 
     def __repr__(self):
-        return '{}({}, {})'.format(
-            self.__class__.__name__,
-            self._parent,
-            '{}.{}'.format(
-                self._parent.meta.service_name, self._model.resource.type
-            ),
-        )
+        return f'{self.__class__.__name__}({self._parent}, {self._parent.meta.service_name}.{self._model.resource.type})'
 
     def iterator(self, **kwargs):
         """
@@ -424,15 +409,12 @@ class CollectionFactory:
         )
 
         if service_context.service_name == resource_name:
-            cls_name = '{}.{}Collection'.format(
-                service_context.service_name, collection_name
-            )
+            cls_name = f'{service_context.service_name}.{collection_name}Collection'
         else:
-            cls_name = '{}.{}.{}Collection'.format(
-                service_context.service_name, resource_name, collection_name
-            )
+            cls_name = f'{service_context.service_name}.{resource_name}.{collection_name}Collection'
 
-        collection_cls = type(str(cls_name), (ResourceCollection,), attrs)
+
+        collection_cls = type(cls_name, (ResourceCollection,), attrs)
 
         # Add the documentation to the collection manager's methods
         self._load_documented_collection_methods(
@@ -446,7 +428,7 @@ class CollectionFactory:
         attrs['_collection_cls'] = collection_cls
         cls_name += 'Manager'
 
-        return type(str(cls_name), (CollectionManager,), attrs)
+        return type(cls_name, (CollectionManager,), attrs)
 
     def _load_batch_actions(
         self,

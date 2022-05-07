@@ -143,9 +143,9 @@ class ResourceFactory:
 
         # Create the name based on the requested service and resource
         cls_name = resource_name
-        if service_context.service_name == resource_name:
+        if service_context.service_name == cls_name:
             cls_name = 'ServiceResource'
-        cls_name = service_context.service_name + '.' + cls_name
+        cls_name = f'{service_context.service_name}.{cls_name}'
 
         base_classes = [ServiceResource]
         if self._emitter is not None:
@@ -325,7 +325,7 @@ class ResourceFactory:
             # identifiers have a value ``None``. If any are ``None``,
             # a more informative user error than a generic AttributeError
             # is raised.
-            return getattr(self, '_' + identifier.name, None)
+            return getattr(self, f'_{identifier.name}', None)
 
         get_identifier.__name__ = str(identifier.name)
         get_identifier.__doc__ = docstring.IdentifierDocstring(
@@ -344,7 +344,7 @@ class ResourceFactory:
         """
 
         def get_identifier(self):
-            return getattr(self, '_' + identifier.name, None)
+            return getattr(self, f'_{identifier.name}', None)
 
         get_identifier.__name__ = str(identifier.member_name)
         get_identifier.__doc__ = docstring.AttributeDocstring(
@@ -521,8 +521,9 @@ class ResourceFactory:
             # would lead to failure.
             identifiers = subresource_model.resource.identifiers
             if identifiers is not None:
-                for identifier, value in build_identifiers(identifiers, self):
-                    positional_args.append(value)
+                positional_args.extend(
+                    value for identifier, value in build_identifiers(identifiers, self)
+                )
 
             return partial(
                 resource_cls, *positional_args, client=self.meta.client

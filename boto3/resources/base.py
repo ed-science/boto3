@@ -48,9 +48,7 @@ class ResourceMeta:
         self.resource_model = resource_model
 
     def __repr__(self):
-        return 'ResourceMeta(\'{}\', identifiers={})'.format(
-            self.service_name, self.identifiers
-        )
+        return f"ResourceMeta('{self.service_name}', identifiers={self.identifiers})"
 
     def __eq__(self, other):
         # Two metas are equal if their components are all equal
@@ -106,7 +104,7 @@ class ServiceResource:
         # Allow setting identifiers as positional arguments in the order
         # in which they were defined in the ResourceJSON.
         for i, value in enumerate(args):
-            setattr(self, '_' + self.meta.identifiers[i], value)
+            setattr(self, f'_{self.meta.identifiers[i]}', value)
 
         # Allow setting identifiers via keyword arguments. Here we need
         # extra logic to ignore other keyword arguments like ``client``.
@@ -117,7 +115,7 @@ class ServiceResource:
             if name not in self.meta.identifiers:
                 raise ValueError(f'Unknown keyword argument: {name}')
 
-            setattr(self, '_' + name, value)
+            setattr(self, f'_{name}', value)
 
         # Validate that all identifiers have been set.
         for identifier in self.meta.identifiers:
@@ -125,31 +123,26 @@ class ServiceResource:
                 raise ValueError(f'Required parameter {identifier} not set')
 
     def __repr__(self):
-        identifiers = []
-        for identifier in self.meta.identifiers:
-            identifiers.append(
-                f'{identifier}={repr(getattr(self, identifier))}'
-            )
-        return "{}({})".format(
-            self.__class__.__name__,
-            ', '.join(identifiers),
-        )
+        identifiers = [
+            f'{identifier}={repr(getattr(self, identifier))}'
+            for identifier in self.meta.identifiers
+        ]
+
+        return f"{self.__class__.__name__}({', '.join(identifiers)})"
 
     def __eq__(self, other):
         # Should be instances of the same resource class
         if other.__class__.__name__ != self.__class__.__name__:
             return False
 
-        # Each of the identifiers should have the same value in both
-        # instances, e.g. two buckets need the same name to be equal.
-        for identifier in self.meta.identifiers:
-            if getattr(self, identifier) != getattr(other, identifier):
-                return False
-
-        return True
+        return all(
+            getattr(self, identifier) == getattr(other, identifier)
+            for identifier in self.meta.identifiers
+        )
 
     def __hash__(self):
-        identifiers = []
-        for identifier in self.meta.identifiers:
-            identifiers.append(getattr(self, identifier))
+        identifiers = [
+            getattr(self, identifier) for identifier in self.meta.identifiers
+        ]
+
         return hash((self.__class__.__name__, tuple(identifiers)))

@@ -192,15 +192,13 @@ class TransformationInjector:
         # update the placeholder dictionaries in the request.
         if expr_attr_names_input in params:
             params[expr_attr_names_input].update(generated_names)
-        else:
-            if generated_names:
-                params[expr_attr_names_input] = generated_names
+        elif generated_names:
+            params[expr_attr_names_input] = generated_names
 
         if expr_attr_values_input in params:
             params[expr_attr_values_input].update(generated_values)
-        else:
-            if generated_values:
-                params[expr_attr_values_input] = generated_values
+        elif generated_values:
+            params[expr_attr_values_input] = generated_values
 
     def inject_attribute_value_input(self, params, model, **kwargs):
         """Injects DynamoDB serialization into parameter input"""

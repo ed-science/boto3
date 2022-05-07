@@ -42,14 +42,14 @@ def is_resource_action(action_handle):
 
 def get_resource_public_actions(resource_class):
     resource_class_members = inspect.getmembers(resource_class)
-    resource_methods = {}
-    for name, member in resource_class_members:
-        if not name.startswith('_'):
-            if not name[0].isupper():
-                if not name.startswith('wait_until'):
-                    if is_resource_action(member):
-                        resource_methods[name] = member
-    return resource_methods
+    return {
+        name: member
+        for name, member in resource_class_members
+        if not name.startswith('_')
+        and not name[0].isupper()
+        and not name.startswith('wait_until')
+        and is_resource_action(member)
+    }
 
 
 def get_identifier_values_for_example(identifier_names):

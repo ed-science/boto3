@@ -122,6 +122,7 @@ transfer.  For example:
 
 
 """
+
 from botocore.exceptions import ClientError
 from s3transfer.exceptions import (
     RetriesExceededError as S3TransferRetriesExceededError,
@@ -135,7 +136,7 @@ from s3transfer.utils import OSUtils
 from boto3.exceptions import RetriesExceededError, S3UploadFailedError
 
 KB = 1024
-MB = KB * KB
+MB = KB**2
 
 
 def create_transfer_manager(client, config, osutil=None):
@@ -153,9 +154,7 @@ def create_transfer_manager(client, config, osutil=None):
     :rtype: s3transfer.manager.TransferManager
     :returns: A transfer manager based on parameters provided
     """
-    executor_cls = None
-    if not config.use_threads:
-        executor_cls = NonThreadedExecutor
+    executor_cls = None if config.use_threads else NonThreadedExecutor
     return TransferManager(client, config, osutil, executor_cls)
 
 
@@ -260,10 +259,7 @@ class S3Transfer:
             config = TransferConfig()
         if osutil is None:
             osutil = OSUtils()
-        if manager:
-            self._manager = manager
-        else:
-            self._manager = create_transfer_manager(client, config, osutil)
+        self._manager = manager or create_transfer_manager(client, config, osutil)
 
     def upload_file(
         self, filename, bucket, key, callback=None, extra_args=None
@@ -286,15 +282,9 @@ class S3Transfer:
         )
         try:
             future.result()
-        # If a client error was raised, add the backwards compatibility layer
-        # that raises a S3UploadFailedError. These specific errors were only
-        # ever thrown for upload_parts but now can be thrown for any related
-        # client error.
         except ClientError as e:
             raise S3UploadFailedError(
-                "Failed to upload {} to {}: {}".format(
-                    filename, '/'.join([bucket, key]), e
-                )
+                f"Failed to upload {filename} to {'/'.join([bucket, key])}: {e}"
             )
 
     def download_file(
@@ -327,9 +317,7 @@ class S3Transfer:
             raise RetriesExceededError(e.last_exception)
 
     def _get_subscribers(self, callback):
-        if not callback:
-            return None
-        return [ProgressCallbackInvoker(callback)]
+        return [ProgressCallbackInvoker(callback)] if callback else None
 
     def __enter__(self):
         return self

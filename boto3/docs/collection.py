@@ -46,9 +46,10 @@ class CollectionDocumenter(BaseDocumenter):
             getattr(self._resource, collection.name)
         )
         document_collection_object(section, collection)
-        batch_actions = {}
-        for batch_action in collection.batch_actions:
-            batch_actions[batch_action.name] = batch_action
+        batch_actions = {
+            batch_action.name: batch_action
+            for batch_action in collection.batch_actions
+        }
 
         for method in sorted(methods):
             method_section = section.add_new_section(method)
@@ -199,45 +200,27 @@ def document_collection_method(
 
     custom_action_info_dict = {
         'all': {
-            'method_description': (
-                f'Creates an iterable of all {collection_model.resource.type} '
-                f'resources in the collection.'
-            ),
-            'example_prefix': '{}_iterator = {}.{}.all'.format(
-                xform_name(collection_model.resource.type),
-                example_resource_name,
-                collection_model.name,
-            ),
+            'method_description': f'Creates an iterable of all {collection_model.resource.type} '
+            f'resources in the collection.',
+            'example_prefix': f'{xform_name(collection_model.resource.type)}_iterator = {example_resource_name}.{collection_model.name}.all',
             'exclude_input': underlying_operation_members,
         },
         'filter': {
-            'method_description': (
-                f'Creates an iterable of all {collection_model.resource.type} '
-                f'resources in the collection filtered by kwargs passed to '
-                f'method. A {collection_model.resource.type} collection will '
-                f'include all resources by default if no filters are provided, '
-                f'and extreme caution should be taken when performing actions '
-                f'on all resources.'
-            ),
-            'example_prefix': '{}_iterator = {}.{}.filter'.format(
-                xform_name(collection_model.resource.type),
-                example_resource_name,
-                collection_model.name,
-            ),
+            'method_description': f'Creates an iterable of all {collection_model.resource.type} '
+            f'resources in the collection filtered by kwargs passed to '
+            f'method. A {collection_model.resource.type} collection will '
+            f'include all resources by default if no filters are provided, '
+            f'and extreme caution should be taken when performing actions '
+            f'on all resources.',
+            'example_prefix': f'{xform_name(collection_model.resource.type)}_iterator = {example_resource_name}.{collection_model.name}.filter',
             'exclude_input': get_resource_ignore_params(
                 collection_model.request.params
             ),
         },
         'limit': {
-            'method_description': (
-                f'Creates an iterable up to a specified amount of '
-                f'{collection_model.resource.type} resources in the collection.'
-            ),
-            'example_prefix': '{}_iterator = {}.{}.limit'.format(
-                xform_name(collection_model.resource.type),
-                example_resource_name,
-                collection_model.name,
-            ),
+            'method_description': f'Creates an iterable up to a specified amount of '
+            f'{collection_model.resource.type} resources in the collection.',
+            'example_prefix': f'{xform_name(collection_model.resource.type)}_iterator = {example_resource_name}.{collection_model.name}.limit',
             'include_input': [
                 DocumentedShape(
                     name='count',
@@ -251,16 +234,10 @@ def document_collection_method(
             'exclude_input': underlying_operation_members,
         },
         'page_size': {
-            'method_description': (
-                f'Creates an iterable of all {collection_model.resource.type} '
-                f'resources in the collection, but limits the number of '
-                f'items returned by each service call by the specified amount.'
-            ),
-            'example_prefix': '{}_iterator = {}.{}.page_size'.format(
-                xform_name(collection_model.resource.type),
-                example_resource_name,
-                collection_model.name,
-            ),
+            'method_description': f'Creates an iterable of all {collection_model.resource.type} '
+            f'resources in the collection, but limits the number of '
+            f'items returned by each service call by the specified amount.',
+            'example_prefix': f'{xform_name(collection_model.resource.type)}_iterator = {example_resource_name}.{collection_model.name}.page_size',
             'include_input': [
                 DocumentedShape(
                     name='count',
@@ -273,6 +250,7 @@ def document_collection_method(
             'exclude_input': underlying_operation_members,
         },
     }
+
     if action_name in custom_action_info_dict:
         action_info = custom_action_info_dict[action_name]
         document_model_driven_resource_method(

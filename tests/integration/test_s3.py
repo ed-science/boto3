@@ -38,9 +38,7 @@ def assert_files_equal(first, second):
     second_md5 = md5_checksum(second)
     if first_md5 != second_md5:
         raise AssertionError(
-            "Files are not equal: {}(md5={}) != {}(md5={})".format(
-                first, first_md5, second, second_md5
-            )
+            f"Files are not equal: {first}(md5={first_md5}) != {second}(md5={second_md5})"
         )
 
 
@@ -86,8 +84,7 @@ def clear_out_bucket(bucket, region, delete_bucket=False):
     page = s3.get_paginator('list_objects')
     # Use pages paired with batch delete_objects().
     for page in page.paginate(Bucket=bucket):
-        keys = [{'Key': obj['Key']} for obj in page.get('Contents', [])]
-        if keys:
+        if keys := [{'Key': obj['Key']} for obj in page.get('Contents', [])]:
             s3.delete_objects(Bucket=bucket, Delete={'Objects': keys})
     if delete_bucket:
         try:
@@ -138,7 +135,7 @@ class FileCreator:
         filename = self.create_file(filename, contents='')
         chunksize = 8192
         with open(filename, 'wb') as f:
-            for i in range(int(math.ceil(filesize / float(chunksize)))):
+            for _ in range(int(math.ceil(filesize / float(chunksize)))):
                 f.write(b'a' * chunksize)
         return filename
 
@@ -268,7 +265,7 @@ class TestS3Resource(unittest.TestCase):
         # Create several versions of an object
         obj = self.bucket.Object('test.txt')
         for i in range(10):
-            obj.put(Body="Version %s" % i)
+            obj.put(Body=f"Version {i}")
 
             # Delete all the versions of the object
             bucket.object_versions.all().delete()
@@ -306,7 +303,7 @@ class TestS3Transfers(unittest.TestCase):
         waiter = self.client.get_waiter('object_exists')
         params = {'Bucket': self.bucket_name, 'Key': key_name}
         if extra_params is not None:
-            params.update(extra_params)
+            params |= extra_params
         for _ in range(min_successes):
             waiter.wait(**params)
 

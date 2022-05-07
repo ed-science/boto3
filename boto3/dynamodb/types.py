@@ -154,14 +154,10 @@ class TypeSerializer:
         return dynamodb_type
 
     def _is_null(self, value):
-        if value is None:
-            return True
-        return False
+        return value is None
 
     def _is_boolean(self, value):
-        if isinstance(value, bool):
-            return True
-        return False
+        return isinstance(value, bool)
 
     def _is_number(self, value):
         if isinstance(value, (int, Decimal)):
@@ -173,35 +169,22 @@ class TypeSerializer:
         return False
 
     def _is_string(self, value):
-        if isinstance(value, str):
-            return True
-        return False
+        return isinstance(value, str)
 
     def _is_binary(self, value):
-        if isinstance(value, (Binary, bytearray, bytes)):
-            return True
-        return False
+        return isinstance(value, (Binary, bytearray, bytes))
 
     def _is_set(self, value):
-        if isinstance(value, collections.abc.Set):
-            return True
-        return False
+        return isinstance(value, collections.abc.Set)
 
     def _is_type_set(self, value, type_validator):
-        if self._is_set(value):
-            if False not in map(type_validator, value):
-                return True
-        return False
+        return bool(self._is_set(value) and False not in map(type_validator, value))
 
     def _is_map(self, value):
-        if isinstance(value, collections.abc.Mapping):
-            return True
-        return False
+        return isinstance(value, collections.abc.Mapping)
 
     def _is_listlike(self, value):
-        if isinstance(value, (list, tuple)):
-            return True
-        return False
+        return isinstance(value, (list, tuple))
 
     def _serialize_null(self, value):
         return True
@@ -211,7 +194,7 @@ class TypeSerializer:
 
     def _serialize_n(self, value):
         number = str(DYNAMODB_CONTEXT.create_decimal(value))
-        if number in ['Infinity', 'NaN']:
+        if number in {'Infinity', 'NaN'}:
             raise TypeError('Infinity and NaN not supported')
         return number
 
