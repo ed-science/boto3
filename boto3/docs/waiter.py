@@ -68,25 +68,9 @@ def document_resource_waiter(
 
     ignore_params = get_resource_ignore_params(resource_waiter_model.params)
     service_module_name = get_service_module_name(service_model)
-    description = (
-        'Waits until this {} is {}. This method calls '
-        ':py:meth:`{}.Waiter.{}.wait` which polls. '
-        ':py:meth:`{}.Client.{}` every {} seconds until '
-        'a successful state is reached. An error is returned '
-        'after {} failed checks.'.format(
-            resource_name,
-            ' '.join(resource_waiter_model.name.split('_')[2:]),
-            service_module_name,
-            xform_name(resource_waiter_model.waiter_name),
-            service_module_name,
-            xform_name(waiter_model.operation),
-            waiter_model.delay,
-            waiter_model.max_attempts,
-        )
-    )
-    example_prefix = '{}.{}'.format(
-        xform_name(resource_name), resource_waiter_model.name
-    )
+    description = f"Waits until this {resource_name} is {' '.join(resource_waiter_model.name.split('_')[2:])}. This method calls :py:meth:`{service_module_name}.Waiter.{xform_name(resource_waiter_model.waiter_name)}.wait` which polls. :py:meth:`{service_module_name}.Client.{xform_name(waiter_model.operation)}` every {waiter_model.delay} seconds until a successful state is reached. An error is returned after {waiter_model.max_attempts} failed checks."
+
+    example_prefix = f'{xform_name(resource_name)}.{resource_waiter_model.name}'
     document_model_driven_method(
         section=section,
         method_name=resource_waiter_model.name,

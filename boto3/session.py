@@ -63,11 +63,9 @@ class Session:
 
         # Setup custom user-agent string if it isn't already customized
         if self._session.user_agent_name == 'Botocore':
-            botocore_info = 'Botocore/{}'.format(
-                self._session.user_agent_version
-            )
+            botocore_info = f'Botocore/{self._session.user_agent_version}'
             if self._session.user_agent_extra:
-                self._session.user_agent_extra += ' ' + botocore_info
+                self._session.user_agent_extra += f' {botocore_info}'
             else:
                 self._session.user_agent_extra = botocore_info
             self._session.user_agent_name = 'Boto3'
@@ -91,10 +89,7 @@ class Session:
         self._register_default_handlers()
 
     def __repr__(self):
-        return '{}(region_name={})'.format(
-            self.__class__.__name__,
-            repr(self._session.get_config_variable('region')),
-        )
+        return f"{self.__class__.__name__}(region_name={repr(self._session.get_config_variable('region'))})"
 
     @property
     def profile_name(self):
@@ -437,12 +432,11 @@ class Session:
         # and service model, the resource version and resource JSON data.
         # We pass these to the factory and get back a class, which is
         # instantiated on top of the low-level client.
-        if config is not None:
-            if config.user_agent_extra is None:
-                config = copy.deepcopy(config)
-                config.user_agent_extra = 'Resource'
-        else:
+        if config is None:
             config = Config(user_agent_extra='Resource')
+        elif config.user_agent_extra is None:
+            config = copy.deepcopy(config)
+            config.user_agent_extra = 'Resource'
         client = self.client(
             service_name,
             region_name=region_name,

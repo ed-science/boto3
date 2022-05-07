@@ -85,7 +85,7 @@ def bucket_load(self, *args, **kwargs):
                 self.meta.data = bucket_data
                 break
     except ClientError as e:
-        if not e.response.get('Error', {}).get('Code') == 'AccessDenied':
+        if e.response.get('Error', {}).get('Code') != 'AccessDenied':
             raise
 
 

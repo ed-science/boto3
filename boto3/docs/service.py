@@ -109,9 +109,7 @@ class ServiceDocumenter(BaseServiceDocumenter):
                 )
             )
             identifiers = resource_cls.meta.resource_model.identifiers
-            args = []
-            for _ in identifiers:
-                args.append(temp_identifier_value)
+            args = [temp_identifier_value for _ in identifiers]
             resource = resource_cls(*args, client=self._client)
             ResourceDocumenter(resource, self._session).document_resource(
                 section.add_new_section(resource.meta.resource_model.name)
@@ -119,7 +117,7 @@ class ServiceDocumenter(BaseServiceDocumenter):
 
     def _get_example_file(self):
         return os.path.realpath(
-            os.path.join(self.EXAMPLE_PATH, self._service_name + '.rst')
+            os.path.join(self.EXAMPLE_PATH, f'{self._service_name}.rst')
         )
 
     def _document_examples(self, section):

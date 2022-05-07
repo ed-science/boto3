@@ -55,8 +55,9 @@ class ResourceDocumenter(BaseDocumenter):
     def _add_intro(self, section):
         identifier_names = []
         if self._resource_model.identifiers:
-            for identifier in self._resource_model.identifiers:
-                identifier_names.append(identifier.name)
+            identifier_names.extend(
+                identifier.name for identifier in self._resource_model.identifiers
+            )
 
         # Write out the class signature.
         class_args = get_identifier_args_for_signature(identifier_names)
@@ -80,9 +81,7 @@ class ResourceDocumenter(BaseDocumenter):
     def _add_description(self, section):
         official_service_name = get_official_service_name(self._service_model)
         section.write(
-            'A resource representing an {} {}'.format(
-                official_service_name, self._resource_name
-            )
+            f'A resource representing an {official_service_name} {self._resource_name}'
         )
 
     def _add_example(self, section, identifier_names):
@@ -91,21 +90,13 @@ class ResourceDocumenter(BaseDocumenter):
         section.write('import boto3')
         section.style.new_line()
         section.style.new_line()
-        section.write(
-            '{} = boto3.resource(\'{}\')'.format(
-                self._service_name, self._service_name
-            )
-        )
+        section.write(f"{self._service_name} = boto3.resource('{self._service_name}')")
         section.style.new_line()
         example_values = get_identifier_values_for_example(identifier_names)
         section.write(
-            '{} = {}.{}({})'.format(
-                xform_name(self._resource_name),
-                self._service_name,
-                self._resource_name,
-                example_values,
-            )
+            f'{xform_name(self._resource_name)} = {self._service_name}.{self._resource_name}({example_values})'
         )
+
         section.style.end_codeblock()
 
     def _add_params_description(self, section, identifier_names):
@@ -222,32 +213,28 @@ class ResourceDocumenter(BaseDocumenter):
 
     def _add_actions(self, section):
         section = section.add_new_section('actions')
-        actions = self._resource.meta.resource_model.actions
-        if actions:
+        if actions := self._resource.meta.resource_model.actions:
             documenter = ActionDocumenter(self._resource)
             documenter.member_map = self.member_map
             documenter.document_actions(section)
 
     def _add_sub_resources(self, section):
         section = section.add_new_section('sub-resources')
-        sub_resources = self._resource.meta.resource_model.subresources
-        if sub_resources:
+        if sub_resources := self._resource.meta.resource_model.subresources:
             documenter = SubResourceDocumenter(self._resource)
             documenter.member_map = self.member_map
             documenter.document_sub_resources(section)
 
     def _add_collections(self, section):
         section = section.add_new_section('collections')
-        collections = self._resource.meta.resource_model.collections
-        if collections:
+        if collections := self._resource.meta.resource_model.collections:
             documenter = CollectionDocumenter(self._resource)
             documenter.member_map = self.member_map
             documenter.document_collections(section)
 
     def _add_waiters(self, section):
         section = section.add_new_section('waiters')
-        waiters = self._resource.meta.resource_model.waiters
-        if waiters:
+        if waiters := self._resource.meta.resource_model.waiters:
             service_waiter_model = self._botocore_session.get_waiter_model(
                 self._service_name
             )

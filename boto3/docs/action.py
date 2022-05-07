@@ -30,9 +30,11 @@ from boto3.docs.utils import (
 class ActionDocumenter(BaseDocumenter):
     def document_actions(self, section):
         modeled_actions_list = self._resource_model.actions
-        modeled_actions = {}
-        for modeled_action in modeled_actions_list:
-            modeled_actions[modeled_action.name] = modeled_action
+        modeled_actions = {
+            modeled_action.name: modeled_action
+            for modeled_action in modeled_actions_list
+        }
+
         resource_actions = get_resource_public_actions(
             self._resource.__class__
         )
@@ -149,15 +151,8 @@ def document_load_reload_action(
     :param include_signature: Whether or not to include the signature.
         It is useful for generating docstrings.
     """
-    description = (
-        'Calls :py:meth:`{}.Client.{}` to update the attributes of the '
-        '{} resource. Note that the load and reload methods are '
-        'the same method and can be used interchangeably.'.format(
-            get_service_module_name(service_model),
-            xform_name(load_model.request.operation),
-            resource_name,
-        )
-    )
+    description = f'Calls :py:meth:`{get_service_module_name(service_model)}.Client.{xform_name(load_model.request.operation)}` to update the attributes of the {resource_name} resource. Note that the load and reload methods are the same method and can be used interchangeably.'
+
     example_resource_name = xform_name(resource_name)
     if service_model.service_name == resource_name:
         example_resource_name = resource_name

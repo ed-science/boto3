@@ -71,10 +71,11 @@ def document_sub_resource(
     :param include_signature: Whether or not to include the signature.
         It is useful for generating docstrings.
     """
-    identifiers_needed = []
-    for identifier in sub_resource_model.resource.identifiers:
-        if identifier.source == 'input':
-            identifiers_needed.append(xform_name(identifier.target))
+    identifiers_needed = [
+        xform_name(identifier.target)
+        for identifier in sub_resource_model.resource.identifiers
+        if identifier.source == 'input'
+    ]
 
     if include_signature:
         signature_args = get_identifier_args_for_signature(identifiers_needed)
@@ -90,12 +91,8 @@ def document_sub_resource(
     example_resource_name = xform_name(resource_name)
     if service_model.service_name == resource_name:
         example_resource_name = resource_name
-    example = '{} = {}.{}({})'.format(
-        xform_name(sub_resource_model.resource.type),
-        example_resource_name,
-        sub_resource_model.name,
-        example_values,
-    )
+    example = f'{xform_name(sub_resource_model.resource.type)} = {example_resource_name}.{sub_resource_model.name}({example_values})'
+
     example_section.style.start_codeblock()
     example_section.write(example)
     example_section.style.end_codeblock()
@@ -113,11 +110,9 @@ def document_sub_resource(
     return_section = section.add_new_section('return')
     return_section.style.new_line()
     return_section.write(
-        ':rtype: :py:class:`{}.{}`'.format(
-            get_service_module_name(service_model),
-            sub_resource_model.resource.type,
-        )
+        f':rtype: :py:class:`{get_service_module_name(service_model)}.{sub_resource_model.resource.type}`'
     )
+
     return_section.style.new_line()
     return_section.write(
         f':returns: A {sub_resource_model.resource.type} resource'

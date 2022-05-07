@@ -95,12 +95,7 @@ class DefinitionWithParams:
 
         :type: list(:py:class:`Parameter`)
         """
-        params = []
-
-        for item in self._definition.get('params', []):
-            params.append(Parameter(**item))
-
-        return params
+        return [Parameter(**item) for item in self._definition.get('params', [])]
 
 
 class Parameter:
@@ -200,12 +195,7 @@ class ResponseResource:
 
         :type: list(:py:class:`Identifier`)
         """
-        identifiers = []
-
-        for item in self._definition.get('identifiers', []):
-            identifiers.append(Parameter(**item))
-
-        return identifiers
+        return [Parameter(**item) for item in self._definition.get('identifiers', [])]
 
     @property
     def model(self):
@@ -319,13 +309,10 @@ class ResourceModel:
             self._load_name_with_category(names, name, 'action')
 
         for name, ref in self._get_has_definition().items():
-            # Subresources require no data members, just typically
-            # identifiers and user input.
-            data_required = False
-            for identifier in ref['resource']['identifiers']:
-                if identifier['source'] == 'data':
-                    data_required = True
-                    break
+            data_required = any(
+                identifier['source'] == 'data'
+                for identifier in ref['resource']['identifiers']
+            )
 
             if not data_required:
                 self._load_name_with_category(
@@ -367,17 +354,13 @@ class ResourceModel:
 
         if name in names:
             logger.debug(f'Renaming {self.name} {category} {name}')
-            self._renamed[(category, name)] = name + '_' + category
-            name += '_' + category
+            self._renamed[(category, name)] = f'{name}_{category}'
+            name += f'_{category}'
 
-            if name in names:
+        if name in names:
                 # This isn't good, let's raise instead of trying to keep
                 # renaming this value.
-                raise ValueError(
-                    'Problem renaming {} {} to {}!'.format(
-                        self.name, category, name
-                    )
-                )
+            raise ValueError(f'Problem renaming {self.name} {category} to {name}!')
 
         names.add(name)
 
@@ -570,17 +553,18 @@ class ResourceModel:
                 name = self._get_name('reference', name)
             action = Action(name, definition, self._resource_defs)
 
-            data_required = False
-            for identifier in action.resource.identifiers:
-                if identifier.source == 'data':
-                    data_required = True
-                    break
+            data_required = any(
+                identifier.source == 'data'
+                for identifier in action.resource.identifiers
+            )
 
-            if subresources and not data_required:
+            if (
+                subresources
+                and not data_required
+                or not subresources
+                and data_required
+            ):
                 resources.append(action)
-            elif not subresources and data_required:
-                resources.append(action)
-
         return resources
 
     @property
